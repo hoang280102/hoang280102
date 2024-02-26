@@ -4,6 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
 import morgan from 'morgan'
 import userRouter from './routes/users.routes'
+import databaseServices from './services/database.services'
 const app = express()
 
 const port = process.env.PORT
@@ -25,11 +26,13 @@ const options = {
       }
     }
   },
-  apis: ['./src/routes/*.routes.ts', './src/models/request/user.request.ts'] // files containing annotations as above
+  apis: ['./src/routes/*.routes.ts', './src/models/request/users.request.ts'] // files containing annotations as above
 }
 
 const openapiSpecification = swaggerJsdoc(options)
 //ket noi data base
+
+databaseServices.connect()
 
 app.use(morgan('combined'))
 app.use(express.json())

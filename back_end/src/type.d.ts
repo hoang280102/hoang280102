@@ -5,6 +5,6 @@ import { TokenPayLoad } from './models/request/user.request'
 declare module 'express' {
   export interface Request {
     user?: Users
-    decode_authorized?: TokenPayLoad
+    decode_access_token?: TokenPayLoad
   }
 }
