@@ -14,5 +14,8 @@ export const message = {
   EMAIL_IS_NOT_EXIST: 'email is not exist',
   PASSWORD_IS_WRONG: 'password is wrong',
   NOT_EXIST_ACCESS_TOKEN: 'not exist access token',
-  LOGOUT_SUCCESS: 'logout success'
+  LOGOUT_SUCCESS: 'logout success',
+  EMAIL_IS_VERIFED: 'email is verify',
+  USER_NOT_FOUND: 'user not found',
+  RESEND_VERIFY_EMAIL_USERS: 'resend verify email users'
 }

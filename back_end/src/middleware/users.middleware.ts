@@ -1,11 +1,39 @@
-import { checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { message } from '~/constants/message'
 import databaseServices from '~/services/database.services'
 import usersService from '~/services/users.services'
 import { decodePassword } from '~/utils/bcrypt'
 import { decodeToken } from '~/utils/jwt'
 import { validation } from '~/utils/validation'
+import { Request } from 'express'
 
+// export const emailSchema: ParamSchema = {
+//   notEmpty: {
+//     errorMessage: message.NOT_EMPTY
+//   },
+//   isEmail: {
+//     errorMessage: message.IS_EMAIL
+//   },
+//   trim: true,
+//   isString: {
+//     errorMessage: message.STRING
+//   },
+//   custom: {
+//     options: async (value: string, { req }) => {
+//       const user = await databaseServices.users.findOne({ email: value })
+//       if (!user) {
+//         throw new Error(message.EMAIL_IS_NOT_EXIST)
+//       }
+//       const checkPassword = await decodePassword(req.body.password, user.password)
+//       if (!checkPassword) {
+//         throw new Error(message.PASSWORD_IS_WRONG)
+//       }
+//       req.user = user
+//       // console.log('user:', user)
+//       return true
+//     }
+//   }
+// }
 export const RegisterValidator = validation(
   checkSchema(
     {
@@ -150,7 +178,8 @@ export const AccessValidator = validation(
                 token: access_token,
                 secretKey: process.env.SECRET_ACCESS_KEY as string
               })
-              req.decode_access_token = decode_access_token
+              ;(req as Request).decode_access_token = decode_access_token
+              // console.log(decode_access_token)
             } catch (error) {
               throw new Error()
             }
@@ -180,7 +209,7 @@ export const RefreshValidator = validation(
                 token: value,
                 secretKey: process.env.SECRET_REFRESH_KEY as string
               })
-              req.decode_refresh_token = decode_refresh_token
+              ;(req as Request).decode_refresh_token = decode_refresh_token
               // console.log('req.decode_refresh_token:', req.decode_access_token)
               // console.log('decode_refresh_token:', decode_refresh_token)
             } catch (error) {
@@ -193,3 +222,40 @@ export const RefreshValidator = validation(
     ['body']
   )
 )
+
+export const VerifyEmailValidator = validation(
+  checkSchema({
+    verify_email_token: {
+      notEmpty: {
+        errorMessage: message.NOT_EMPTY
+      },
+      trim: true,
+      isString: {
+        errorMessage: message.STRING
+      },
+      custom: {
+        options: async (value: string, { req }) => {
+          try {
+            const decode_verify_email = await decodeToken({
+              token: value,
+              secretKey: process.env.SECRET_EMAIL_VERIFY_KEY as string
+            })
+            ;(req as Request).decode_verify_email = decode_verify_email
+          } catch (error) {
+            throw new Error()
+          }
+          return true
+        }
+      }
+    }
+  })
+)
+
+// export const ResendVerifyEmailValidator = validation(
+//   checkSchema(
+//     {
+//       email: emailSchema
+//     },
+//     ['body']
+//   )
+// )

@@ -106,3 +106,24 @@ export interface ReqBodyLogin {
 export interface ReqBodyLogout {
   refresh_token: string
 }
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     VeryEmailtUser:
+ *       type: object
+ *       properties:
+ *         verify_email_token:
+ *           type: string
+ *           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVkY2IyODI5MzQ2ZWM5NWE0OTE0ZTZkIiwidmVyaWZ5IjowLCJhdXRob3JpemVkX3VzZXIiOjAsImlhdCI6MTcwODk2MjQzNCwiZXhwIjoxNzA5NTY3MjM0fQ.kzOcorJWHbkz6ySFuxByrnHMCDWVWlwPzAC2E6hkN6k
+ *     SuccessVeryEmailtUser:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: email is verify
+ */
+export interface ReqBodyVerifyEmail {
+  verify_email_token: string
+}
