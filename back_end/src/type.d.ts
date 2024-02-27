@@ -3,8 +3,10 @@ import Users from './models/schemas/User.schema'
 import { TokenPayLoad } from './models/request/user.request'
 
 declare module 'express' {
-  export interface Request {
+  interface Request {
     user?: Users
     decode_access_token?: TokenPayLoad
+    decode_refresh_token?: TokenPayLoad
+    decode_verify_email?: TokenPayLoad
   }
 }
