@@ -1,16 +1,20 @@
 import { Router } from 'express'
 import {
+  forgotPasswordUsersController,
   loginUsersController,
   logoutUsersController,
   registerUsersController,
   resendVerifyEmailUsersController,
+  resetforgotPasswordUsersController,
   verifyEmailUsersController
 } from '~/controllers/users.controller'
 import {
   AccessValidator,
+  ForgotPasswordValidator,
   LoginValidator,
   RefreshValidator,
   RegisterValidator,
+  ResetForgotPasswordValidator,
   VerifyEmailValidator
 } from '~/middleware/users.middleware'
 import { handlerEror } from '~/utils/handleError'
@@ -168,4 +172,71 @@ userRouter.post('/very_email', VerifyEmailValidator, handlerEror(verifyEmailUser
  *         description: Validation exception
  */
 userRouter.post('/resend_verify_email', AccessValidator, handlerEror(resendVerifyEmailUsersController))
+
+/**
+ * @swagger
+ * /users/forgot_password:
+ *   post:
+ *     tags:
+ *       - users
+ *     summary: forgot_password a user
+ *     description: Gửi link token để check mật khẩu người dùng thông thường
+ *     operationId: Quên mật khẩu người dùng
+
+ *     requestBody:
+ *       description: forgot password a user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ForgotPasswordUser'
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessForgotPasswordUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.post('/forgot_password', ForgotPasswordValidator, handlerEror(forgotPasswordUsersController))
+
+/**
+ * @swagger
+ * /users/reset_forgot_password:
+ *   post:
+ *     tags:
+ *       - users
+ *     summary: reset_forgot_password a user
+ *     description: điền lại mật khẩu người dùng thông thường
+ *     operationId: điền lại mật khẩu người dùng
+ *     requestBody:
+ *       description: reset_forgot_password a user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResetForgotPasswordUser'
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResetPasswordUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+
+userRouter.post('/reset_forgot_password', ResetForgotPasswordValidator, handlerEror(resetforgotPasswordUsersController))
+
 export default userRouter
