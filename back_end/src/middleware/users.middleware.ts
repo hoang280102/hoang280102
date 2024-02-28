@@ -7,33 +7,40 @@ import { decodeToken } from '~/utils/jwt'
 import { validation } from '~/utils/validation'
 import { Request } from 'express'
 
-// export const emailSchema: ParamSchema = {
-//   notEmpty: {
-//     errorMessage: message.NOT_EMPTY
-//   },
-//   isEmail: {
-//     errorMessage: message.IS_EMAIL
-//   },
-//   trim: true,
-//   isString: {
-//     errorMessage: message.STRING
-//   },
-//   custom: {
-//     options: async (value: string, { req }) => {
-//       const user = await databaseServices.users.findOne({ email: value })
-//       if (!user) {
-//         throw new Error(message.EMAIL_IS_NOT_EXIST)
-//       }
-//       const checkPassword = await decodePassword(req.body.password, user.password)
-//       if (!checkPassword) {
-//         throw new Error(message.PASSWORD_IS_WRONG)
-//       }
-//       req.user = user
-//       // console.log('user:', user)
-//       return true
-//     }
-//   }
-// }
+export const passwordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: message.NOT_EMPTY
+  },
+  trim: true,
+  isString: {
+    errorMessage: message.STRING
+  },
+  isStrongPassword: {
+    errorMessage: message.IS_STRONG_PASSWORD
+  }
+}
+
+export const confirm_passwordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: message.NOT_EMPTY
+  },
+  trim: true,
+  isString: {
+    errorMessage: message.STRING
+  },
+  isStrongPassword: {
+    errorMessage: message.IS_STRONG_CONFIRM_PASSWORD
+  },
+  custom: {
+    options: async (value: string, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error(message.PASSWORD_DIFFERENT_CONFIRM_PASSWORD)
+      }
+      return true
+    }
+  }
+}
+
 export const RegisterValidator = validation(
   checkSchema(
     {
@@ -74,38 +81,8 @@ export const RegisterValidator = validation(
           }
         }
       },
-      password: {
-        notEmpty: {
-          errorMessage: message.NOT_EMPTY
-        },
-        trim: true,
-        isString: {
-          errorMessage: message.STRING
-        },
-        isStrongPassword: {
-          errorMessage: message.IS_STRONG_PASSWORD
-        }
-      },
-      confirm_password: {
-        notEmpty: {
-          errorMessage: message.NOT_EMPTY
-        },
-        trim: true,
-        isString: {
-          errorMessage: message.STRING
-        },
-        isStrongPassword: {
-          errorMessage: message.IS_STRONG_CONFIRM_PASSWORD
-        },
-        custom: {
-          options: async (value: string, { req }) => {
-            if (value !== req.body.password) {
-              throw new Error(message.PASSWORD_DIFFERENT_CONFIRM_PASSWORD)
-            }
-            return true
-          }
-        }
-      }
+      password: passwordSchema,
+      confirm_password: confirm_passwordSchema
     },
     ['body']
   )
@@ -126,10 +103,15 @@ export const LoginValidator = validation(
         },
         custom: {
           options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error()
+            }
             const user = await databaseServices.users.findOne({ email: value })
             if (!user) {
               throw new Error(message.EMAIL_IS_NOT_EXIST)
             }
+            console.log(req.body.password)
+            console.log(user.password)
             const checkPassword = await decodePassword(req.body.password, user.password)
             if (!checkPassword) {
               throw new Error(message.PASSWORD_IS_WRONG)
@@ -140,18 +122,7 @@ export const LoginValidator = validation(
           }
         }
       },
-      password: {
-        notEmpty: {
-          errorMessage: message.NOT_EMPTY
-        },
-        trim: true,
-        isString: {
-          errorMessage: message.STRING
-        },
-        isStrongPassword: {
-          errorMessage: message.IS_STRONG_PASSWORD
-        }
-      }
+      password: passwordSchema
     },
     ['body']
   )
@@ -169,6 +140,9 @@ export const AccessValidator = validation(
         },
         custom: {
           options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error()
+            }
             const access_token = value.split(' ')[1]
             if (!access_token) {
               throw new Error(message.NOT_EXIST_ACCESS_TOKEN)
@@ -204,6 +178,9 @@ export const RefreshValidator = validation(
         },
         custom: {
           options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error()
+            }
             try {
               const decode_refresh_token = await decodeToken({
                 token: value,
@@ -235,6 +212,9 @@ export const VerifyEmailValidator = validation(
       },
       custom: {
         options: async (value: string, { req }) => {
+          if (!value) {
+            throw new Error()
+          }
           try {
             const decode_verify_email = await decodeToken({
               token: value,
@@ -251,11 +231,72 @@ export const VerifyEmailValidator = validation(
   })
 )
 
-// export const ResendVerifyEmailValidator = validation(
-//   checkSchema(
-//     {
-//       email: emailSchema
-//     },
-//     ['body']
-//   )
-// )
+export const ForgotPasswordValidator = validation(
+  checkSchema(
+    {
+      email: {
+        notEmpty: {
+          errorMessage: message.NOT_EMPTY
+        },
+        isEmail: {
+          errorMessage: message.IS_EMAIL
+        },
+        trim: true,
+        isString: {
+          errorMessage: message.STRING
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error()
+            }
+            try {
+              const user = await databaseServices.users.findOne({ email: value })
+              if (!user) {
+                throw new Error(message.EMAIL_IS_NOT_EXIST)
+              }
+              req.user = user
+              // console.log(user)
+            } catch (error) {
+              throw new Error()
+            }
+
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+export const ResetForgotPasswordValidator = validation(
+  checkSchema({
+    forgot_password_token: {
+      notEmpty: {
+        errorMessage: message.NOT_EMPTY
+      },
+      trim: true,
+      isString: {
+        errorMessage: message.STRING
+      },
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!value) {
+            throw new Error()
+          }
+          try {
+            const decode_forgot_password_token = await decodeToken({
+              token: value,
+              secretKey: process.env.SECRET_FORGOT_PASSWORD_KEY as string
+            })
+            ;(req as Request).decode_forgot_password_token = decode_forgot_password_token
+          } catch (error) {
+            throw new Error()
+          }
+        }
+      }
+    },
+    password: passwordSchema,
+    confirm_password: confirm_passwordSchema
+  })
+)

@@ -17,5 +17,10 @@ export const message = {
   LOGOUT_SUCCESS: 'logout success',
   EMAIL_IS_VERIFED: 'email is verify',
   USER_NOT_FOUND: 'user not found',
-  RESEND_VERIFY_EMAIL_USERS: 'resend verify email users'
-}
+  RESEND_VERIFY_EMAIL_USERS: 'resend verify email users',
+  EMAIL_NOT_VERIFIED: 'email is not verified',
+  FORGOT_PASSWORD_SUCCESS: 'forgot password successfully',
+  RESET_FORGOT_PASSWORD_SUCCESS: 'reset forgot password successfully',
+  PASSWROD_IS_USED_BEFORE: 'password is used before',
+  PASSWORD_NEW_SAME_PASSWORD_OLD: 'password new same password old'
+} as const
