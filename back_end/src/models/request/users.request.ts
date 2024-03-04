@@ -63,7 +63,7 @@ export interface ReqBodyRegister {
  *         password:
  *           type: string
  *           example: Admin123@
- *     SuccessUser:
+ *     SuccessLoginUser:
  *       type: object
  *       properties:
  *         message:
@@ -93,7 +93,7 @@ export interface ReqBodyLogin {
  *         refresh_token:
  *           type: string
  *           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjViMTM1OTYzYjRmNDMwMzY5YmI3NWU2IiwidG9rZW5fdHlwZSI6MSwidmVyaWZ5IjoxLCJpYXQiOjE3MDg0NDIxMDUsImV4cCI6MTcwOTA0NjkwNX0.YBaE4Jh1gIgxEDJNi-kU06JjuT0gskf4ucNZKdi69TU
- *     SuccessUser:
+ *     SuccessLogoutUser:
  *       type: object
  *       properties:
  *         message:
@@ -195,3 +195,142 @@ export interface ReqBodyResetForgotPassword {
   password: string
   confirm_password: string
 }
+
+//get me
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     GetMe:
+ *      type: object
+ *      properties:
+ *        message:
+ *          type: string
+ *          example: get me success
+ *        result:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: admin
+ *             email:
+ *               type: string
+ *               example: admin@gmail.com
+ *             authorized_user:
+ *               type: number
+ *               example: 0
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ChangePasswordUser:
+ *       type: object
+ *       properties:
+ *         old_password:
+ *           type: string
+ *           example: Hoang!123
+ *         password:
+ *           type: string
+ *           example: Hoang123@
+ *         confirm_password:
+ *           type: string
+ *           example: Hoang123@
+ *     SuccessChangePasswordUser:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: change password success
+ *         result:
+ *           type: object
+ *           example: true
+ */
+export interface ReqBodyChangPassword {
+  old_password: string
+  password: string
+  confirm_password: string
+}
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ChangeInforUser:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: Hoang cute
+ *     SuccessChangeInforUser:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: Change user success
+ *         result:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: Hoang cute
+ *             email:
+ *               type: string
+ *               example: ngaovc123@gmail.com
+ *             create_at:
+ *               type: string
+ *               example: 2024-02-26T15:03:51.694Z
+ *             update_at:
+ *               type: string
+ *               example: 2024-02-26T15:03:51.694Z
+ *             verify:
+ *               type: string
+ *               example: 1
+ *             authorized_user:
+ *               type: string
+ *               example: 0
+ */
+export interface ReqBodyChangeUser {
+  name: string
+}
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     FollowerUser:
+ *       type: object
+ *       properties:
+ *         user_id_followed:
+ *           type: string
+ *           example: 65dcb2829346ec95a4914e6d
+ *     SuccessFollowerUser:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: follow user successfully
+ *         result:
+ *           type: object
+ *           example: true
+ */
+export interface ReqBodyFollowUser {
+  user_id_followed: string
+}
+
+//unfollow
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     SuccessUnFollowerUser:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: unfollow user unsuccessfully
+ *         result:
+ *           type: object
+ *           example: true
+ */

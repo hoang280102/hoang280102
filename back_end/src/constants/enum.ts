@@ -8,3 +8,9 @@ export enum AuthorizedUserStatus {
   Admin,
   Producer
 }
+export enum TokenType {
+  AccessToken,
+  RefreshToken,
+  ForgotPasswordToken,
+  EmailVerifyToken
+}

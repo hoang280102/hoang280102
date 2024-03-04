@@ -22,5 +22,9 @@ export const message = {
   FORGOT_PASSWORD_SUCCESS: 'forgot password successfully',
   RESET_FORGOT_PASSWORD_SUCCESS: 'reset forgot password successfully',
   PASSWROD_IS_USED_BEFORE: 'password is used before',
-  PASSWORD_NEW_SAME_PASSWORD_OLD: 'password new same password old'
+  PASSWORD_NEW_SAME_PASSWORD_OLD: 'password new same password old',
+  GET_ME_SUCCESS: 'get me success',
+  CHANGE_PASSWORD_SUCCESS: 'change password success',
+  NAME_IS_EXIST: 'name is already exists',
+  CHANGE_USER_SUCCESS: ' Change user success'
 } as const

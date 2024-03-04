@@ -9,5 +9,6 @@ declare module 'express' {
     decode_refresh_token?: TokenPayLoad
     decode_verify_email?: TokenPayLoad
     decode_forgot_password_token?: TokenPayLoad
+    user_followered?: Users
   }
 }
