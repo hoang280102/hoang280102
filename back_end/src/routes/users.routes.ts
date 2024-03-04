@@ -1,6 +1,11 @@
 import { Router } from 'express'
 import {
+  ChangePasswordController,
+  ChangeUserController,
+  FollowUserController,
+  UnFollowUserController,
   forgotPasswordUsersController,
+  getMeController,
   loginUsersController,
   logoutUsersController,
   registerUsersController,
@@ -8,8 +13,13 @@ import {
   resetforgotPasswordUsersController,
   verifyEmailUsersController
 } from '~/controllers/users.controller'
+
 import {
   AccessValidator,
+  ChangePasswordValidator,
+  ChangeUserValidator,
+  CheckVerifyEmail,
+  FollowUserValidator,
   ForgotPasswordValidator,
   LoginValidator,
   RefreshValidator,
@@ -74,7 +84,7 @@ userRouter.post('/register', RegisterValidator, handlerEror(registerUsersControl
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessUser'
+ *               $ref: '#/components/schemas/SuccessLoginUser'
  *       '400':
  *         description: Invalid ID supplied
  *       '404':
@@ -108,7 +118,7 @@ userRouter.post('/login', LoginValidator, handlerEror(loginUsersController))
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessUser'
+ *               $ref: '#/components/schemas/SuccessLogoutUser'
  *       '400':
  *         description: Invalid ID supplied
  *       '404':
@@ -164,6 +174,10 @@ userRouter.post('/very_email', VerifyEmailValidator, handlerEror(verifyEmailUser
  *     responses:
  *       '200':
  *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+
  *       '400':
  *         description: Invalid ID supplied
  *       '404':
@@ -239,4 +253,188 @@ userRouter.post('/forgot_password', ForgotPasswordValidator, handlerEror(forgotP
 
 userRouter.post('/reset_forgot_password', ResetForgotPasswordValidator, handlerEror(resetforgotPasswordUsersController))
 
+/**
+ * @swagger
+ * /users/get_me:
+ *   get:
+ *     tags:
+ *       - users
+ *     summary: get_me a user
+ *     description: lấy thông tin người dùng thông thường
+ *     operationId: lấy thông tin người dùng
+ *     security:
+ *      - BearerAuth: []
+ *     requestBody:
+ *       description: get_me a user
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetMe'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.get('/get_me', AccessValidator, handlerEror(getMeController))
+
+/**
+ * @swagger
+ * /users/change_password:
+ *   put:
+ *     tags:
+ *       - users
+ *     summary: Change password a user
+ *     description: Thay đổi mật khẩu người dùng
+ *     operationId: Thay đổi mật khẩu người dùng
+ *     security:
+ *      - BearerAuth: []
+ *     requestBody:
+ *       description: Change password a user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangePasswordUser'
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessChangePasswordUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.put(
+  '/change_password',
+  AccessValidator,
+  CheckVerifyEmail as any,
+  ChangePasswordValidator,
+  handlerEror(ChangePasswordController)
+)
+
+/**
+ * @swagger
+ * /users/change_infor_user:
+ *   patch:
+ *     tags:
+ *       - users
+ *     summary: Change infor user a user
+ *     description: Thay đổi thông tin người dùng
+ *     operationId: Thay đổi thông tin người dùng
+ *     security:
+ *      - BearerAuth: []
+ *     requestBody:
+ *       description: change infor user a user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangeInforUser'
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessChangeInforUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.patch(
+  '/change_infor_user',
+  AccessValidator,
+  CheckVerifyEmail as any,
+  ChangeUserValidator,
+  handlerEror(ChangeUserController)
+)
+
+/**
+ * @swagger
+ * /users/follower:
+ *   post:
+ *     tags:
+ *       - users
+ *     summary: Follower a user
+ *     description: Theo dõi người dùng
+ *     operationId: Theo dõi người dùng
+ *     security:
+ *      - BearerAuth: []
+ *     requestBody:
+ *       description: follower a user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/FollowerUser'
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessFollowerUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.post(
+  '/follower',
+  AccessValidator,
+  CheckVerifyEmail as any,
+  FollowUserValidator,
+  handlerEror(FollowUserController)
+)
+
+/**
+ * @swagger
+ * /users/unfollower/{id}:
+ *   delete:
+ *     tags:
+ *       - users
+ *     summary: UnFollower a user
+ *     description: Bỏ Theo dõi người dùng
+ *     operationId: Bỏ Theo dõi người dùng
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: Id need used
+ *        required: true
+ *        schema:
+ *          type: string
+ *          items:
+ *            type: string
+ *     security:
+ *      - BearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessUnFollowerUser'
+ *       '400':
+ *         description: Invalid ID supplied
+ *       '404':
+ *         description: User not found
+ *       '422':
+ *         description: Validation exception
+ */
+userRouter.delete('/unfollower/:id', AccessValidator, CheckVerifyEmail as any, handlerEror(UnFollowUserController))
 export default userRouter

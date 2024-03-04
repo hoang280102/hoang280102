@@ -1,12 +1,13 @@
-import { ReqBodyRegister } from '~/models/request/users.request'
+import { ReqBodyChangeUser, ReqBodyFollowUser, ReqBodyRegister } from '~/models/request/users.request'
 import databaseServices from './database.services'
 import { Users } from '~/models/schemas/users.schemas'
 import { hashPassword } from '~/utils/bcrypt'
 import { createToken, decodeToken } from '~/utils/jwt'
-import { AuthorizedUserStatus, UserVerifyStatus } from '~/constants/enum'
+import { AuthorizedUserStatus, TokenType, UserVerifyStatus } from '~/constants/enum'
 import { ObjectId } from 'mongodb'
 import { RefreshToken } from '~/models/schemas/refresh.schemas'
 import { message } from '~/constants/message'
+import { Follow } from '~/models/schemas/follow.schemas'
 
 class UsersService {
   private async InsertRefreshToken({
@@ -31,11 +32,12 @@ class UsersService {
     verify: UserVerifyStatus
     authorized_user: AuthorizedUserStatus
   }) {
-    return await createToken({
+    return createToken({
       payload: {
         user_id,
-        verify: UserVerifyStatus,
-        authorized_user: AuthorizedUserStatus
+        token_type: TokenType.AccessToken,
+        verify,
+        authorized_user
       },
       secretKey: process.env.SECRET_ACCESS_KEY as string,
       options: {
@@ -52,11 +54,12 @@ class UsersService {
     verify: UserVerifyStatus
     authorized_user: AuthorizedUserStatus
   }) {
-    return await createToken({
+    return createToken({
       payload: {
         user_id,
-        verify: UserVerifyStatus,
-        authorized_user: AuthorizedUserStatus
+        token_type: TokenType.RefreshToken,
+        verify,
+        authorized_user
       },
       secretKey: process.env.SECRET_REFRESH_KEY as string,
       options: {
@@ -90,8 +93,9 @@ class UsersService {
     return await createToken({
       payload: {
         user_id,
-        verify: UserVerifyStatus,
-        authorized_user: AuthorizedUserStatus
+        token_type: TokenType.EmailVerifyToken,
+        verify,
+        authorized_user
       },
       secretKey: process.env.SECRET_EMAIL_VERIFY_KEY as string,
       options: {
@@ -111,8 +115,9 @@ class UsersService {
     return await createToken({
       payload: {
         user_id,
-        verify: UserVerifyStatus,
-        authorized_user: AuthorizedUserStatus
+        token_type: TokenType.ForgotPasswordToken,
+        verify,
+        authorized_user
       },
       secretKey: process.env.SECRET_FORGOT_PASSWORD_KEY as string,
       options: {
@@ -229,7 +234,11 @@ class UsersService {
       { _id: new ObjectId(user_id) },
       {
         $set: {
-          verify_email_token: await this.signEmailVerifyToken({ user_id, verify, authorized_user })
+          verify_email_token: await this.signEmailVerifyToken({
+            user_id,
+            verify: UserVerifyStatus.Unverified,
+            authorized_user
+          })
         },
         $currentDate: {
           update_at: true
@@ -295,6 +304,57 @@ class UsersService {
       authorized_user
     })
     return { token }
+  }
+  async changePassword({ user_id, new_password }: { user_id: string; new_password: string }) {
+    await databaseServices.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          password: await hashPassword(new_password)
+        },
+        $currentDate: {
+          update_at: true
+        }
+      }
+    )
+    return true
+  }
+  async changeUser({ user_id, payload }: { user_id: string; payload: ReqBodyChangeUser }) {
+    const user = await databaseServices.users.findOneAndUpdate(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          ...payload
+        },
+        $currentDate: {
+          update_at: true
+        }
+      },
+      {
+        projection: {
+          _id: 0,
+          password: 0,
+          forgot_password_token: 0,
+          verify_email_token: 0
+        }, // ko hiện ra _id , password, forgot_password_token, verify_email_token
+        returnDocument: 'after' // trar về tài liệu sau khi cập nhật
+      }
+    )
+    return user
+  }
+  async FollowUser({ user_id_follower, followed_user_id }: { user_id_follower: string; followed_user_id: string }) {
+    await databaseServices.follow.insertOne(
+      new Follow({
+        user_id: new ObjectId(user_id_follower),
+        followed_user_id: new ObjectId(followed_user_id)
+      })
+    )
+
+    return true
+  }
+  async UnFollowUser(id_collection_follower: string) {
+    await databaseServices.follow.deleteOne({ _id: new ObjectId(id_collection_follower) })
+    return true
   }
 }
 

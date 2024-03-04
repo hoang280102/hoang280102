@@ -5,7 +5,11 @@ import usersService from '~/services/users.services'
 import { decodePassword } from '~/utils/bcrypt'
 import { decodeToken } from '~/utils/jwt'
 import { validation } from '~/utils/validation'
-import { Request } from 'express'
+import { NextFunction, Request } from 'express'
+import { TokenPayLoad } from '~/models/request/users.request'
+import { UserVerifyStatus } from '~/constants/enum'
+import { ObjectId } from 'mongodb'
+import { Users } from '~/models/schemas/users.schemas'
 
 export const passwordSchema: ParamSchema = {
   notEmpty: {
@@ -40,26 +44,27 @@ export const confirm_passwordSchema: ParamSchema = {
     }
   }
 }
+export const nameSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: message.NOT_EMPTY
+  },
+  trim: true,
+  isLength: {
+    options: {
+      min: 6,
+      max: 30
+    },
+    errorMessage: message.NAME_LENGTH
+  },
+  isString: {
+    errorMessage: message.STRING
+  }
+}
 
 export const RegisterValidator = validation(
   checkSchema(
     {
-      name: {
-        notEmpty: {
-          errorMessage: message.NOT_EMPTY
-        },
-        trim: true,
-        isLength: {
-          options: {
-            min: 6,
-            max: 30
-          },
-          errorMessage: message.NAME_LENGTH
-        },
-        isString: {
-          errorMessage: message.STRING
-        }
-      },
+      name: nameSchema,
       email: {
         notEmpty: {
           errorMessage: message.NOT_EMPTY
@@ -110,8 +115,6 @@ export const LoginValidator = validation(
             if (!user) {
               throw new Error(message.EMAIL_IS_NOT_EXIST)
             }
-            console.log(req.body.password)
-            console.log(user.password)
             const checkPassword = await decodePassword(req.body.password, user.password)
             if (!checkPassword) {
               throw new Error(message.PASSWORD_IS_WRONG)
@@ -270,33 +273,119 @@ export const ForgotPasswordValidator = validation(
   )
 )
 export const ResetForgotPasswordValidator = validation(
-  checkSchema({
-    forgot_password_token: {
-      notEmpty: {
-        errorMessage: message.NOT_EMPTY
-      },
-      trim: true,
-      isString: {
-        errorMessage: message.STRING
-      },
-      custom: {
-        options: async (value: string, { req }) => {
-          if (!value) {
-            throw new Error()
+  checkSchema(
+    {
+      forgot_password_token: {
+        notEmpty: {
+          errorMessage: message.NOT_EMPTY
+        },
+        trim: true,
+        isString: {
+          errorMessage: message.STRING
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error()
+            }
+            try {
+              const decode_forgot_password_token = await decodeToken({
+                token: value,
+                secretKey: process.env.SECRET_FORGOT_PASSWORD_KEY as string
+              })
+              ;(req as Request).decode_forgot_password_token = decode_forgot_password_token
+            } catch (error) {
+              throw new Error()
+            }
           }
-          try {
-            const decode_forgot_password_token = await decodeToken({
-              token: value,
-              secretKey: process.env.SECRET_FORGOT_PASSWORD_KEY as string
-            })
-            ;(req as Request).decode_forgot_password_token = decode_forgot_password_token
-          } catch (error) {
-            throw new Error()
+        }
+      },
+      password: passwordSchema,
+      confirm_password: confirm_passwordSchema
+    },
+    ['body']
+  )
+)
+
+export const CheckVerifyEmail = (req: Request, res: Response, next: NextFunction) => {
+  const user = req.decode_access_token as TokenPayLoad
+  const { verify } = user
+  if (verify !== UserVerifyStatus.Verified) {
+    return new Error("'User is not verified'")
+  }
+  next()
+}
+export const ChangePasswordValidator = validation(
+  checkSchema(
+    {
+      old_password: {
+        ...passwordSchema,
+        custom: {
+          options: async (value: string, { req }) => {
+            const user = req.decode_access_token as TokenPayLoad
+            const { user_id } = user
+            const result = (await databaseServices.users.findOne({ _id: new ObjectId(user_id) })) as Users
+            const { password } = result
+            const check_password = await decodePassword(value, password)
+            if (!check_password) {
+              throw new Error('Password is wrong')
+            }
+          }
+        }
+      },
+      password: {
+        ...passwordSchema,
+        custom: {
+          options: async (value: string, { req }) => {
+            const user = req.decode_access_token as TokenPayLoad
+            const { user_id } = user
+            const result = (await databaseServices.users.findOne({ _id: new ObjectId(user_id) })) as Users
+            const { password } = result
+            const comparePassword = await decodePassword(value, password)
+            if (comparePassword) {
+              throw new Error(message.PASSWORD_NEW_SAME_PASSWORD_OLD)
+            }
+          }
+        }
+      },
+      confirm_password: confirm_passwordSchema
+    },
+    ['body']
+  )
+)
+
+export const ChangeUserValidator = validation(
+  checkSchema(
+    {
+      name: nameSchema
+    },
+    ['body']
+  )
+)
+
+export const FollowUserValidator = validation(
+  checkSchema(
+    {
+      user_id_followed: {
+        notEmpty: {
+          errorMessage: message.NOT_EMPTY
+        },
+        trim: true,
+        isString: {
+          errorMessage: message.STRING
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const user_followered = await databaseServices.users.findOne({ _id: new ObjectId(value) })
+            if (!user_followered) {
+              throw new Error('User not found')
+            }
+            ;(req as Request).user_followered = user_followered
+            return true
           }
         }
       }
     },
-    password: passwordSchema,
-    confirm_password: confirm_passwordSchema
-  })
+    ['body']
+  )
 )

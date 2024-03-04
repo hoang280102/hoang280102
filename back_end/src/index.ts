@@ -5,9 +5,14 @@ import swaggerUi from 'swagger-ui-express'
 import morgan from 'morgan'
 import userRouter from './routes/users.routes'
 import databaseServices from './services/database.services'
+import { createFile } from './utils/createFile'
+import cors from 'cors'
+
 const app = express()
 
 const port = process.env.PORT
+
+createFile()
 
 const options = {
   definition: {
@@ -34,6 +39,8 @@ const openapiSpecification = swaggerJsdoc(options)
 
 databaseServices.connect()
 
+// createFile()
+app.use(cors())
 app.use(morgan('combined'))
 app.use(express.json())
 app.use('/users', userRouter)

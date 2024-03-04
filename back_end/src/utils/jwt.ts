@@ -3,11 +3,13 @@ import { TokenPayLoad } from '~/models/request/users.request'
 export const createToken = ({
   payload,
   secretKey,
-  options
+  options = {
+    algorithm: 'HS256'
+  }
 }: {
   payload: string | object | Buffer
   secretKey: string
-  options: SignOptions
+  options?: SignOptions
 }) => {
   return new Promise<string>((resolve, reject) => {
     jwt.sign(payload, secretKey, options, (err, result) => {

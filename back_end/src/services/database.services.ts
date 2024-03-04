@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { Collection, Db, MongoClient } from 'mongodb'
+import { Follow } from '~/models/schemas/follow.schemas'
 import { RefreshToken } from '~/models/schemas/refresh.schemas'
 import { Users } from '~/models/schemas/users.schemas'
 const username = process.env.NAME_DATABASE
@@ -26,6 +27,9 @@ class DatabaseServices {
   }
   get refresh_token(): Collection<RefreshToken> {
     return this.db.collection(process.env.COLLECTION_REFRESH_NAME as string)
+  }
+  get follow(): Collection<Follow> {
+    return this.db.collection(process.env.COLLECTION_FOLLOW as string)
   }
 }
 const databaseServices = new DatabaseServices()
