@@ -437,4 +437,5 @@ userRouter.post(
  *         description: Validation exception
  */
 userRouter.delete('/unfollower/:id', AccessValidator, CheckVerifyEmail as any, handlerEror(UnFollowUserController))
+
 export default userRouter

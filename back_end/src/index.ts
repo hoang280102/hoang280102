@@ -8,10 +8,16 @@ import databaseServices from './services/database.services'
 import { createFile } from './utils/createFile'
 import cors from 'cors'
 
+import mp3Router from './routes/mp3.routes'
+// import { MP3_TEMP_DIR } from './utils/path'
+import imgRouter from './routes/img.routes'
+import videoRouter from './routes/video.routes'
+
 const app = express()
 
 const port = process.env.PORT
 
+// createFile()
 createFile()
 
 const options = {
@@ -31,7 +37,7 @@ const options = {
       }
     }
   },
-  apis: ['./src/routes/*.routes.ts', './src/models/request/users.request.ts'] // files containing annotations as above
+  apis: ['./src/routes/*.routes.ts', './src/models/request/*.request.ts'] // files containing annotations as above
 }
 
 const openapiSpecification = swaggerJsdoc(options)
@@ -39,11 +45,14 @@ const openapiSpecification = swaggerJsdoc(options)
 
 databaseServices.connect()
 
-// createFile()
 app.use(cors())
 app.use(morgan('combined'))
 app.use(express.json())
 app.use('/users', userRouter)
+app.use('/mp3', mp3Router)
+app.use('/img', imgRouter)
+app.use('/video', videoRouter)
+// app.use('/mp3s', express.static(MP3_TEMP_DIR))
 app.use('/api-doc', swaggerUi.serve, swaggerUi.setup(openapiSpecification))
 
 app.listen(port, () => {
