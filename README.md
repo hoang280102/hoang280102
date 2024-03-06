@@ -1,5 +1,5 @@
-npm íntall
-//run sevrer
+npm install
+
 npm run dev
-// test api
+test api
 http://localhost:`${port}`/api-doc
